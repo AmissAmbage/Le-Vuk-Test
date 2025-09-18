@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Macro & Body-Comp Planner</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-XmE+nobVhtSGcVwqDAVBBusZT6F4LmSpaV0t1Ik5+pUvNbK/CtYQgQki71RJKVQ1" crossorigin="anonymous"></script>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <h1>Macro &amp; Body-Comp Planner</h1>
+      <p class="lead">Plan your nutrition, track projected changes, and sanity-check your approach in one place.</p>
+    </header>
+
+    <section class="panel" aria-labelledby="inputs-heading">
+      <div class="panel-header">
+        <h2 id="inputs-heading">Inputs</h2>
+        <p>Enter your current stats and preferences. All values are validated to practical ranges.</p>
+      </div>
+      <form class="grid-form" id="inputs-form">
+        <div class="field">
+          <label for="weight">Weight (kg)</label>
+          <input type="number" id="weight" name="weight" min="30" max="250" step="0.1" value="75" required />
+        </div>
+        <div class="field">
+          <label for="bodyfat">Body Fat %</label>
+          <input type="number" id="bodyfat" name="bodyfat" min="3" max="60" step="0.1" value="18" required />
+        </div>
+        <div class="field">
+          <label for="tdee">TDEE (kcal)</label>
+          <input type="number" id="tdee" name="tdee" min="1000" max="6000" step="1" value="2600" required />
+        </div>
+        <div class="field">
+          <label for="weeks">Weeks</label>
+          <input type="number" id="weeks" name="weeks" min="1" max="104" step="1" value="12" required />
+        </div>
+        <div class="field">
+          <label for="experience">Experience</label>
+          <select id="experience" name="experience">
+            <option value="novice">Novice</option>
+            <option value="intermediate" selected>Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="goal">Goal Mode</label>
+          <select id="goal" name="goal">
+            <option value="auto" selected>Auto</option>
+            <option value="cut">Cut</option>
+            <option value="bulk">Bulk</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="intensity">Intensity</label>
+          <select id="intensity" name="intensity">
+            <option value="0.75">Conservative</option>
+            <option value="1" selected>Moderate</option>
+            <option value="1.25">Aggressive</option>
+            <option value="1.5">Extreme</option>
+          </select>
+        </div>
+        <div class="field slider-field">
+          <label for="meals">Meals per day</label>
+          <div class="slider-wrapper">
+            <input type="range" id="meals" name="meals" min="1" max="6" step="1" value="3" aria-describedby="meals-count" />
+            <span id="meals-count" aria-live="polite">3 meals</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="carb-source">Carb Source</label>
+          <select id="carb-source" name="carb-source">
+            <option value="rice" selected>Rice (cooked)</option>
+            <option value="oats">Oats (dry)</option>
+            <option value="potato">Potato (boiled)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fat-source">Fat Source</label>
+          <select id="fat-source" name="fat-source">
+            <option value="butter" selected>Butter</option>
+            <option value="oliveOil">Olive Oil</option>
+            <option value="peanutButter">Peanut Butter</option>
+          </select>
+        </div>
+      </form>
+      <div class="panel-actions">
+        <button type="button" id="calculate-btn" class="btn primary">Calculate Plan</button>
+        <button type="button" id="apply-btn" class="btn" hidden>Apply Suggested Adjustments</button>
+        <span class="applied-banner" id="applied-banner" role="status" aria-live="polite" hidden>Suggestions applied.</span>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="results-heading">
+      <div class="panel-header">
+        <h2 id="results-heading">Results</h2>
+        <p>Target daily intake, per-meal breakdowns, and real-food portions tailored to your selections.</p>
+      </div>
+      <div class="results-grid" id="results">
+        <div class="result-card">
+          <h3>Daily Targets</h3>
+          <ul>
+            <li><strong>Calories:</strong> <span id="target-calories">—</span> kcal</li>
+            <li><strong>Protein:</strong> <span id="daily-protein">—</span> g</li>
+            <li><strong>Carbs:</strong> <span id="daily-carbs">—</span> g</li>
+            <li><strong>Fats:</strong> <span id="daily-fats">—</span> g</li>
+          </ul>
+        </div>
+        <div class="result-card">
+          <h3>Per Meal</h3>
+          <ul>
+            <li><strong>Calories:</strong> <span id="meal-calories">—</span> kcal</li>
+            <li><strong>Protein:</strong> <span id="meal-protein">—</span> g</li>
+            <li><strong>Carbs:</strong> <span id="meal-carbs">—</span> g</li>
+            <li><strong>Fats:</strong> <span id="meal-fats">—</span> g</li>
+          </ul>
+        </div>
+        <div class="result-card">
+          <h3>Portions</h3>
+          <ul>
+            <li><strong>Chicken Breast:</strong> <span id="portion-chicken">—</span> g</li>
+            <li><strong><span id="portion-carb-label">Carb</span>:</strong> <span id="portion-carb">—</span> g</li>
+            <li><strong><span id="portion-fat-label">Fat</span>:</strong> <span id="portion-fat">—</span> tbsp</li>
+          </ul>
+        </div>
+        <div class="result-card">
+          <h3>Outlook</h3>
+          <ul>
+            <li><strong>Goal:</strong> <span id="goal-text">—</span></li>
+            <li><strong>Fat Change:</strong> <span id="fat-change">—</span> kg</li>
+            <li><strong>Muscle Change:</strong> <span id="muscle-change">—</span> kg</li>
+            <li><strong>Final Weight:</strong> <span id="final-weight">—</span> kg</li>
+            <li><strong>Final BF%:</strong> <span id="final-bf">—</span>%</li>
+          </ul>
+          <p id="auto-message" class="auto-note">—</p>
+        </div>
+        <div class="result-card wide">
+          <h3>Training &amp; Recovery</h3>
+          <p id="training-rec">—</p>
+          <p id="recovery-tips">—</p>
+        </div>
+      </div>
+      <aside class="suggestions" id="suggestions" aria-live="polite" hidden>
+        <h3>Realism Check</h3>
+        <p id="realism-message">Your plan pushes beyond sustainable rates. Consider the adjustments below.</p>
+        <ul id="suggestions-list"></ul>
+      </aside>
+    </section>
+
+    <section class="panel" aria-labelledby="chart-heading">
+      <div class="panel-header">
+        <h2 id="chart-heading">Body-Comp Projection</h2>
+        <p>Forecast weight, body-fat %, and muscle gain over the selected timeframe.</p>
+      </div>
+      <canvas id="progress-chart" role="img" aria-label="Projected progress chart"></canvas>
+    </section>
+
+    <section class="panel" aria-labelledby="guide-heading">
+      <div class="panel-header">
+        <h2 id="guide-heading">Experience Guide</h2>
+        <p>Not sure which experience level fits? Use the guide below — we also auto-classify based on your training age clues.</p>
+      </div>
+      <div class="guide">
+        <article>
+          <h3>Novice</h3>
+          <p>0–1 years of consistent lifting or returning after a long break. Focus on full-body sessions 3× per week.</p>
+        </article>
+        <article>
+          <h3>Intermediate</h3>
+          <p>1–4 years of structured training. Progress best with 4–5 sessions and targeted weak-point work.</p>
+        </article>
+        <article>
+          <h3>Advanced</h3>
+          <p>4+ years of progressive overload with near-maximal lifts. Emphasize recovery, deloads, and precise nutrition.</p>
+        </article>
+      </div>
+      <p class="auto-class" id="auto-class">Select your closest match — we’ll tailor recommendations based on it.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="explainer-heading">
+      <div class="panel-header">
+        <h2 id="explainer-heading">What sets training frequency?</h2>
+      </div>
+      <p>
+        Training frequency is driven by recovery capacity, technical skill, and the size of your calorie surplus or deficit. Deeper
+        deficits call for fewer hard sets per muscle, while lean bulks thrive on higher frequency so long as sleep and stress
+        are well-managed.
+      </p>
+    </section>
+
+    <section class="panel" aria-labelledby="diagnostics-heading">
+      <div class="panel-header">
+        <h2 id="diagnostics-heading">Diagnostics &amp; Tests</h2>
+        <p>Validate the math and UI safeguards. All tests should pass before you rely on the plan.</p>
+      </div>
+      <div class="panel-actions">
+        <button type="button" id="tests-btn" class="btn secondary">Run Tests</button>
+      </div>
+      <ol id="tests-output" class="tests-output" aria-live="polite"></ol>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
